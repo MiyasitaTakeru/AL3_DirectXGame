@@ -51,7 +51,7 @@ void GameScene::Update() {
 	position.y += 1.0f;
 	//移動した座標をスプライトに反映
 	sprite_->SetPosition(position);
-
+	
 	//スペースキーを押した瞬間
 	if (input_->TriggerKey(DIK_SPACE)) {
 	//音声停止
