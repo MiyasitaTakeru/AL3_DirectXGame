@@ -51,6 +51,13 @@ class GameScene {
 	void BeamMove();
 	//ビーム発生
 	void BeamBorn();
+	
+	//エネミー更新
+	void EnemyUpdate();
+	//エネミー発生
+	void EnemyBorn();
+	//エネミー移動
+	void EnemyMove();
 
   private: // メンバ変数
 	DirectXCommon* dxCommon_ = nullptr;
@@ -84,6 +91,12 @@ class GameScene {
 	Model* modelBeam_ = nullptr;
 	WorldTransform worldTransformBeam_;
 	//ビーム存在フラグ
-	//int beamFlag_ = 0;
 	int32_t beamFlag_ = 0;
+
+	//エネミー
+	uint32_t textureHandleEnemy_ = 0;
+	Model* modelEnemy_ = nullptr;
+	WorldTransform worldTransformEnemy_;
+	//エネミー存在フラグ
+	uint32_t enemyFlag_ = 0;
 };
