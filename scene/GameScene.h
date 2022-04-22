@@ -42,6 +42,16 @@ class GameScene {
 	/// </summary>
 	void Draw();
 
+	//プレイヤー更新
+	void PlayerUpdate();
+
+	//ビーム更新
+	void BeamUpdate();
+	//ビーム移動
+	void BeamMove();
+	//ビーム発生
+	void BeamBorn();
+
   private: // メンバ変数
 	DirectXCommon* dxCommon_ = nullptr;
 	Input* input_ = nullptr;
@@ -64,4 +74,16 @@ class GameScene {
 	Model* modelStage_ = nullptr;
 	WorldTransform worldTransformStage_;
 
+	//プレイヤー
+	uint32_t textureHandlePlayer_ = 0;
+	Model* modelPlayer_ = nullptr;
+	WorldTransform worldTransformPlayer_;
+
+	//ビーム
+	uint32_t textureHandleBeam_ = 0;
+	Model* modelBeam_ = nullptr;
+	WorldTransform worldTransformBeam_;
+	//ビーム存在フラグ
+	//int beamFlag_ = 0;
+	int32_t beamFlag_ = 0;
 };

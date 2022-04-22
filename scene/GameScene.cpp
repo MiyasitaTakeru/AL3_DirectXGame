@@ -13,8 +13,13 @@ GameScene::~GameScene() {
 	delete spriteBG_;
 	//ステージ
 	delete modelStage_;
+	//プレイヤー
+	delete modelPlayer_;
+	//ビーム
+	delete modelBeam_;
 }
 
+#pragma region 初期化
 //初期化
 void GameScene::Initialize() {
 	dxCommon_ = DirectXCommon::GetInstance();
@@ -35,12 +40,28 @@ void GameScene::Initialize() {
 	worldTransformStage_.translation_ = {0, -1.5f, 0};
 	worldTransformStage_.scale_ = {4.5f, 1, 40};
 	worldTransformStage_.Initialize();
+	//プレイヤー
+	textureHandlePlayer_ = TextureManager::Load("Player.png");
+	modelPlayer_ = Model::Create();
+	worldTransformPlayer_.scale_ = {0.5f, 0.5f, 0.5f};
+	worldTransformPlayer_.Initialize();
+	//ビーム
+	textureHandleBeam_ = TextureManager::Load("beam.png");
+	modelBeam_ = Model::Create();
+	worldTransformBeam_.scale_ = {0.3f, 0.3f, 0.3f};
+	worldTransformBeam_.Initialize();
 }
+#pragma endregion 初期化
 
 
 //更新
 void GameScene::Update() { 
-	
+	PlayerUpdate();
+	BeamUpdate();
+	std::string strDebug = std::string("beamFlag:") + std::to_string(beamFlag_);
+	debugText_->Print(strDebug, 50, 50, 1.0f);
+	/*std::string z = std::string("z:") + std::to_string(worldTransformBeam_.translation_.z);
+	debugText_->Print(z, 50, 600, 1.0f);*/
 }
 
 //描画
@@ -73,7 +94,14 @@ void GameScene::Draw() {
 
 	/// <summary>
 	/// ここに3Dオブジェクトの描画処理を追加できる
+	//ステージ
 	modelStage_->Draw(worldTransformStage_, viewProjection_, textureHandleStage_);
+	//プレイヤー
+	modelPlayer_->Draw(worldTransformPlayer_, viewProjection_, textureHandlePlayer_);
+	//ビーム(フラグが1の時)
+	if (beamFlag_ == 1) {
+		modelBeam_->Draw(worldTransformBeam_, viewProjection_, textureHandleBeam_);
+	}
 	/// </summary>
 	
 	// 3Dオブジェクト描画後処理
@@ -96,4 +124,52 @@ void GameScene::Draw() {
 	Sprite::PostDraw();
 
 #pragma endregion
+}
+
+//プレイヤー更新
+void GameScene::PlayerUpdate() {
+	//x座標が3.5f以下の場合右へ移動(移動制限)
+	if (input_->PushKey(DIK_RIGHT) && worldTransformPlayer_.translation_.x <= 3.5f) {
+		worldTransformPlayer_.translation_.x += 0.1f;
+	}
+	//x座標が-3.5f以上の場合左へ移動(移動制限)
+	if (input_->PushKey(DIK_LEFT) && worldTransformPlayer_.translation_.x >= -3.5f) {
+		worldTransformPlayer_.translation_.x -= 0.1f;
+	}
+	//行列更新
+	worldTransformPlayer_.UpdateMatrix();
+}
+//ビーム更新
+void GameScene::BeamUpdate() {
+	//発生
+	BeamBorn();
+	//移動(フラグが1の時呼び出し)
+	if (beamFlag_ == 1) {
+		BeamMove();
+	}
+	//行列更新
+	worldTransformBeam_.UpdateMatrix();
+}
+//ビーム発生
+void GameScene::BeamBorn() {
+	//フラグが1かつスペース押下時
+	if (input_->PushKey(DIK_SPACE)&& beamFlag_ == 0) {
+		//弾を自機の位置に
+		worldTransformBeam_.translation_.x = worldTransformPlayer_.translation_.x;
+		//弾を自機の手前に
+		worldTransformBeam_.translation_.z = worldTransformPlayer_.translation_.z + 0.3f;
+		//フラグを1
+		beamFlag_ = 1;
+	}
+}
+//ビーム移動
+void GameScene::BeamMove() {
+	//回転
+	worldTransformBeam_.rotation_.x += 0.1f;
+	//奥に移動(z軸)
+	worldTransformBeam_.translation_.z += 0.5f;
+	//z座標が40以上でフラグが0
+	if (worldTransformBeam_.translation_.z >= 40) {
+		beamFlag_ = 0;
+	}
 }
