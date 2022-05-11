@@ -59,6 +59,18 @@ class GameScene {
 	//エネミー移動
 	void EnemyMove();
 
+	//衝突判定
+	void Collision();
+	//衝突判定(プレイヤーと敵)
+	void CollisionPlayerEnemy();
+	//衝突判定(ビームと敵)
+	void CollisionBeamEnemy();
+
+	//ゲームスコア
+	int gameScore_ = 0;
+	//プレイヤーライフ
+	int playerLife_ = 3;
+
   private: // メンバ変数
 	DirectXCommon* dxCommon_ = nullptr;
 	Input* input_ = nullptr;
@@ -69,6 +81,7 @@ class GameScene {
 	/// ゲームシーン用
 	/// </summary>
 	
+
 	//BG(スプライト)
 	uint32_t textureHandleBG_ = 0;
 	Sprite* spriteBG_ = nullptr;

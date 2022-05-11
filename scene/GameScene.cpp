@@ -29,6 +29,7 @@ void GameScene::Initialize() {
 	input_ = Input::GetInstance();
 	audio_ = Audio::GetInstance();
 	debugText_ = DebugText::GetInstance();
+	
 	//BG(2Dスプライト)
 	textureHandleBG_ = TextureManager::Load("bg.jpg");
 	spriteBG_ = Sprite::Create(textureHandleBG_, {0, 0});
@@ -73,6 +74,11 @@ void GameScene::Update() {
 	PlayerUpdate();
 	EnemyUpdate();
 	BeamUpdate();
+	Collision();
+	CollisionPlayerEnemy();
+	CollisionBeamEnemy();
+
+	//デバッグ
 	std::string beamDebug = std::string("beamFlag:") + std::to_string(beamFlag_);
 	debugText_->Print(beamDebug, 50, 50, 1.0f);
 	std::string enemyDebug = std::string("enemyFlag:") + std::to_string(enemyFlag_);
@@ -136,7 +142,14 @@ void GameScene::Draw() {
 	/// <summary>
 	/// ここに前景スプライトの描画処理を追加できる
 	/// </summary>
-	
+	//スコア
+	char score[100];
+	sprintf_s(score, "SCORE : %d", gameScore_);
+	debugText_->Print(score, 200, 10, 2);
+	//ライフ
+	char life[100];
+	sprintf_s(life, "LIFE : %d", playerLife_);
+	debugText_->Print(life, 1000, 10, 2);
 
 	// デバッグテキストの描画
 	debugText_->DrawAll(commandList);
@@ -230,5 +243,38 @@ void GameScene::EnemyMove() {
 	// z座標が-10以下でフラグが0
 	if (worldTransformEnemy_.translation_.z <= -10) {
 		enemyFlag_ = 0;
+	}
+}
+
+//衝突判定
+void GameScene::Collision() { 
+	//衝突判定(プレイヤーと敵)
+	CollisionPlayerEnemy(); 
+}
+//衝突判定(プレイヤーと敵)
+void GameScene::CollisionPlayerEnemy() {
+	//敵が存在したら
+	if (enemyFlag_ == 1) {
+		float dx = abs(worldTransformPlayer_.translation_.x - worldTransformEnemy_.translation_.x);
+		float dz = abs(worldTransformPlayer_.translation_.z - worldTransformEnemy_.translation_.z);
+		//衝突したら
+		if (dx < 1 && dz < 1) {
+			playerLife_ -= 1;
+			enemyFlag_ = 0;
+		}
+	}
+}
+//衝突判定(ビームと敵)
+void GameScene::CollisionBeamEnemy() {
+	//敵と弾が存在したら
+	if (enemyFlag_ == 1 && beamFlag_ == 1) {
+		float dx = abs(worldTransformBeam_.translation_.x - worldTransformEnemy_.translation_.x);
+		float dz = abs(worldTransformBeam_.translation_.z - worldTransformEnemy_.translation_.z);
+		//衝突したら
+		if (dx < 1 && dz < 1) {
+			gameScore_ += 100;
+			enemyFlag_ = 0;
+			beamFlag_ = 0;
+		}
 	}
 }
