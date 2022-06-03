@@ -42,6 +42,16 @@ class GameScene {
 	/// </summary>
 	void Draw();
 
+	//ゲーム初期化
+	void GamePlayStart();
+
+	//タイトル
+	void TitleUpdate();
+	void TitleDraw2DNear();
+	//ゲームオーバー
+	void GameOverUpdate();
+	void GameOverDraw2DNear();
+
 	//プレイヤー更新
 	void PlayerUpdate();
 
@@ -66,10 +76,26 @@ class GameScene {
 	//衝突判定(ビームと敵)
 	void CollisionBeamEnemy();
 
+	//ゲームプレイ更新
+	void GamePlayUpdate();
+	//ゲームプレイ3D表示
+	void GamePlayDraw3D();
+	//ゲームプレイ背景2D表示
+	void GamePlayDraw2DBack();
+	//ゲームプレイ近景2D表示
+	void GamePlayDraw2DNear();
+
+
 	//ゲームスコア
 	int gameScore_ = 0;
+
 	//プレイヤーライフ
 	int playerLife_ = 3;
+	
+	//シーン( 0 : ゲームプレイ / 1 : タイトル / 2 : ゲームオーバー)
+	int sceneMode_ = 1;
+	//エンターキー点滅
+	int gameTimer_ = 0;
 
   private: // メンバ変数
 	DirectXCommon* dxCommon_ = nullptr;
@@ -81,13 +107,24 @@ class GameScene {
 	/// ゲームシーン用
 	/// </summary>
 	
-
 	//BG(スプライト)
 	uint32_t textureHandleBG_ = 0;
 	Sprite* spriteBG_ = nullptr;
 
 	//ビュープロジェクション(共通)
 	ViewProjection viewProjection_;
+
+	//タイトル
+	uint32_t textureHandleTitle_ = 0;
+	Sprite* spriteTitle_ = nullptr;
+
+	//ゲームオーバー
+	uint32_t textureHandleGameOver_ = 0;
+	Sprite* spriteGameOver_ = nullptr;
+
+	//エンターキー
+	uint32_t textureHandleEnter_ = 0;
+	Sprite* spriteEnter_ = nullptr;
 
 	//ステージ
 	uint32_t textureHandleStage_ = 0;

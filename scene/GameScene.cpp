@@ -12,6 +12,8 @@ GameScene::GameScene() {}
 GameScene::~GameScene() { 
 	//BG
 	delete spriteBG_;
+	//シーン
+	delete spriteTitle_;
 	//ステージ
 	delete modelStage_;
 	//プレイヤー
@@ -22,7 +24,6 @@ GameScene::~GameScene() {
 	delete modelEnemy_;
 }
 
-#pragma region 初期化
 //初期化
 void GameScene::Initialize() {
 	dxCommon_ = DirectXCommon::GetInstance();
@@ -46,6 +47,17 @@ void GameScene::Initialize() {
 	worldTransformStage_.scale_ = {4.5f, 1, 40};
 	worldTransformStage_.Initialize();
 
+	//タイトル
+	textureHandleTitle_ = TextureManager::Load("title.png");
+	spriteTitle_ = Sprite::Create(textureHandleTitle_, {0, 0});
+	//ゲームオーバー
+	textureHandleGameOver_ = TextureManager::Load("gameover.png");
+	spriteGameOver_ = Sprite::Create(textureHandleGameOver_, {0, 0});
+
+	//エンターキー
+	textureHandleEnter_ = TextureManager::Load("enter.png");
+	spriteEnter_ = Sprite::Create(textureHandleEnter_, {400, 500});
+
 	//プレイヤー
 	textureHandlePlayer_ = TextureManager::Load("Player.png");
 	modelPlayer_ = Model::Create();
@@ -66,18 +78,16 @@ void GameScene::Initialize() {
 	srand(time(nullptr));
 	worldTransformEnemy_.Initialize();
 }
-#pragma endregion 初期化
 
 
-//更新
-void GameScene::Update() { 
+//ゲームプレイ更新
+void GameScene::GamePlayUpdate() {
 	PlayerUpdate();
 	EnemyUpdate();
 	BeamUpdate();
 	Collision();
 	CollisionPlayerEnemy();
 	CollisionBeamEnemy();
-
 	//デバッグ
 	std::string beamDebug = std::string("beamFlag:") + std::to_string(beamFlag_);
 	debugText_->Print(beamDebug, 50, 50, 1.0f);
@@ -86,37 +96,8 @@ void GameScene::Update() {
 	/*std::string z = std::string("z:") + std::to_string(worldTransformBeam_.translation_.z);
 	debugText_->Print(z, 50, 600, 1.0f);*/
 }
-
-//描画
-void GameScene::Draw() {
-
-	// コマンドリストの取得
-	ID3D12GraphicsCommandList* commandList = dxCommon_->GetCommandList();
-
-#pragma region 背景スプライト描画
-	// 背景スプライト描画前処理
-	Sprite::PreDraw(commandList);
-
-	/// <summary>
-	/// ここに背景スプライトの描画処理を追加できる
-	//背景
-	spriteBG_->Draw();
-	
-	/// </summary>
-	
-	// スプライト描画後処理
-	Sprite::PostDraw();
-
-	// 深度バッファクリア
-	dxCommon_->ClearDepthBuffer();
-#pragma endregion
-
-#pragma region 3Dオブジェクト描画
-	// 3Dオブジェクト描画前処理
-	Model::PreDraw(commandList);
-
-	/// <summary>
-	/// ここに3Dオブジェクトの描画処理を追加できる
+//ゲームプレイ3D描画
+void GameScene::GamePlayDraw3D() {
 	//ステージ
 	modelStage_->Draw(worldTransformStage_, viewProjection_, textureHandleStage_);
 	//プレイヤー
@@ -129,8 +110,79 @@ void GameScene::Draw() {
 	if (enemyFlag_ == 1) {
 		modelEnemy_->Draw(worldTransformEnemy_, viewProjection_, textureHandleEnemy_);
 	}
+}
+//ゲームプレイ背景描画
+void GameScene::GamePlayDraw2DBack() {
+	//背景
+	spriteBG_->Draw();
+}
+//ゲームプレイ前景描画
+void GameScene::GamePlayDraw2DNear() {
+	//スコア
+	char score[100];
+	sprintf_s(score, "SCORE : %d", gameScore_);
+	debugText_->Print(score, 200, 10, 2);
+	//ライフ
+	char life[100];
+	sprintf_s(life, "LIFE : %d", playerLife_);
+	debugText_->Print(life, 1000, 10, 2);
+}
+
+//更新
+void GameScene::Update() { 
+	switch (sceneMode_) {
+		case 0:
+		GamePlayUpdate();
+		    break;
+		case 1:
+		    TitleUpdate();
+		    gameTimer_++;
+		    break;
+	    case 2:
+		    GameOverUpdate();
+		    gameTimer_++;
+		    break;
+	}
+}
+//描画
+void GameScene::Draw() {
+	// コマンドリストの取得
+	ID3D12GraphicsCommandList* commandList = dxCommon_->GetCommandList();
+
+#pragma region 背景スプライト描画
+	// 背景スプライト描画前処理
+	Sprite::PreDraw(commandList);
+
+	/// <summary>
+	/// ここに背景スプライトの描画処理を追加できる
 	/// </summary>
-	
+	switch (sceneMode_) {
+	case 0:
+		GamePlayDraw2DBack();
+		break;
+	}
+
+
+	// スプライト描画後処理
+	Sprite::PostDraw();
+
+	// 深度バッファクリア
+	dxCommon_->ClearDepthBuffer();
+#pragma endregion
+
+#pragma region オブジェクト描画3D
+	// 3Dオブジェクト描画前処理
+	Model::PreDraw(commandList);
+
+	/// <summary>
+	/// ここに3Dオブジェクトの描画処理を追加できる
+	/// </summary>
+	switch (sceneMode_) {
+	case 0:
+		GamePlayDraw3D();
+		break;
+	}
+
 	// 3Dオブジェクト描画後処理
 	Model::PostDraw();
 #pragma endregion
@@ -142,22 +194,75 @@ void GameScene::Draw() {
 	/// <summary>
 	/// ここに前景スプライトの描画処理を追加できる
 	/// </summary>
-	//スコア
-	char score[100];
-	sprintf_s(score, "SCORE : %d", gameScore_);
-	debugText_->Print(score, 200, 10, 2);
-	//ライフ
-	char life[100];
-	sprintf_s(life, "LIFE : %d", playerLife_);
-	debugText_->Print(life, 1000, 10, 2);
-
 	// デバッグテキストの描画
-	debugText_->DrawAll(commandList);
-
+	switch (sceneMode_) {
+	case 0:
+		GamePlayDraw2DNear();
+		debugText_->DrawAll(commandList);
+		break;
+	case 1:
+		//タイトル表示
+		TitleDraw2DNear();
+		break;
+	case 2:
+		//ゲームオーバー表示
+		GameOverDraw2DNear();
+		break;
+	}
+	
 	// スプライト描画後処理
 	Sprite::PostDraw();
 
 #pragma endregion
+}
+
+//------------------関数定義------------------//
+//ゲーム初期化
+void GameScene::GamePlayStart() { 
+	sceneMode_ = 0;
+	gameTimer_ = 0;
+	gameScore_ = 0;
+	playerLife_ = 3;
+	beamFlag_=0;
+	enemyFlag_ = 0;
+	//プレイヤー初期位置
+	worldTransformPlayer_.translation_.x = 0;
+	worldTransformPlayer_.translation_.y = 0;
+}
+
+//タイトル更新
+void GameScene::TitleUpdate() { 
+	//エンターキーを押したら
+	if (input_->TriggerKey(DIK_RETURN)) {
+		//ゲームプレイを初期化
+		GamePlayStart();
+		//モードをゲームプレイに変更
+		sceneMode_ = 0;
+	}
+}
+//タイトル描画
+void GameScene::TitleDraw2DNear() { 
+	spriteTitle_->Draw(); 
+	//エンター点滅
+	if (gameTimer_ % 60 <= 20) {
+		spriteEnter_->Draw();
+	}
+}
+//ゲームオーバー更新
+void GameScene::GameOverUpdate() {
+	//エンターキーを押したら
+	if (input_->TriggerKey(DIK_RETURN)) {
+		//モードをゲームプレイ
+		sceneMode_ = 1;
+	}
+}
+//ゲームオーバー描画
+void GameScene::GameOverDraw2DNear() {
+	spriteGameOver_->Draw();
+	//エンター点滅
+	if (gameTimer_ % 60 <= 20) {
+		spriteEnter_->Draw();
+	}
 }
 
 //プレイヤー更新
@@ -169,6 +274,10 @@ void GameScene::PlayerUpdate() {
 	//x座標が-3.5f以上の場合左へ移動(移動制限)
 	if (input_->PushKey(DIK_LEFT) && worldTransformPlayer_.translation_.x >= -3.5f) {
 		worldTransformPlayer_.translation_.x -= 0.1f;
+	}
+	//プレイヤーライフが0でゲームオーバーへ
+	if (playerLife_ <= 0) {
+		sceneMode_ = 2;
 	}
 	//行列更新
 	worldTransformPlayer_.UpdateMatrix();
