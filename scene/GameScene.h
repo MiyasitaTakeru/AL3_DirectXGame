@@ -97,6 +97,13 @@ class GameScene {
 	//エンターキー点滅
 	int gameTimer_ = 0;
 
+	//ビーム発射タイマー
+	int beamTimer_ = 0;
+
+	//敵のスピード
+	float enemySpeed_[10] = {};
+
+
   private: // メンバ変数
 	DirectXCommon* dxCommon_ = nullptr;
 	Input* input_ = nullptr;
@@ -139,14 +146,14 @@ class GameScene {
 	//ビーム
 	uint32_t textureHandleBeam_ = 0;
 	Model* modelBeam_ = nullptr;
-	WorldTransform worldTransformBeam_;
+	WorldTransform worldTransformBeam_[10];
 	//ビーム存在フラグ
-	int32_t beamFlag_ = 0;
+	int32_t beamFlag_[10] = {};
 
 	//エネミー
 	uint32_t textureHandleEnemy_ = 0;
 	Model* modelEnemy_ = nullptr;
-	WorldTransform worldTransformEnemy_;
+	WorldTransform worldTransformEnemy_[10];
 	//エネミー存在フラグ
-	uint32_t enemyFlag_ = 0;
+	uint32_t enemyFlag_[10] = {};
 };
