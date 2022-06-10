@@ -156,4 +156,13 @@ class GameScene {
 	WorldTransform worldTransformEnemy_[10];
 	//エネミー存在フラグ
 	uint32_t enemyFlag_[10] = {};
+
+	//サウンド
+	uint32_t soundDataHandleTitleBGM_ = 0;
+	uint32_t soundDataHandleGamePlay_ = 0;
+	uint32_t soundDataHandleGameOver_ = 0;
+	uint32_t soundDataHandleShotSE_ = 0;
+	uint32_t soundDataHandleEnemyHitSE_ = 0;
+	uint32_t soundDataHandlePlayerHitSE_ = 0;
+	uint32_t voiceHandleBGM_ = 0;
 };

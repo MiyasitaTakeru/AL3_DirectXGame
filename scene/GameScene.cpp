@@ -80,6 +80,15 @@ void GameScene::Initialize() {
 		srand(time(nullptr));
 		worldTransformEnemy_[i].Initialize();
 	}
+
+	//サウンドデータ読み込み
+	soundDataHandleTitleBGM_ = audio_->LoadWave("Audio/Ring05.wav");
+	soundDataHandleGamePlay_ = audio_->LoadWave("Audio/Ring08.wav");
+	soundDataHandleGameOver_ = audio_->LoadWave("Audio/Ring09.wav");
+	soundDataHandleEnemyHitSE_ = audio_->LoadWave("Audio/chord.wav");
+	soundDataHandlePlayerHitSE_ = audio_->LoadWave("Audio/tada.wav");
+	//タイトルBGMを再生(trueでループ)
+	voiceHandleBGM_ = audio_->PlayWave(soundDataHandleTitleBGM_, true);
 }
 
 
@@ -249,6 +258,11 @@ void GameScene::TitleUpdate() {
 		GamePlayStart();
 		//モードをゲームプレイに変更
 		sceneMode_ = 0;
+		//BGM切り替え
+		//BGMを停止
+		audio_->StopWave(voiceHandleBGM_);
+		//ゲームプレイBGMを再生(trueでループ)
+		voiceHandleBGM_ = audio_->PlayWave(soundDataHandleGamePlay_, true);
 	}
 }
 //タイトル描画
@@ -263,8 +277,12 @@ void GameScene::TitleDraw2DNear() {
 void GameScene::GameOverUpdate() {
 	//エンターキーを押したら
 	if (input_->TriggerKey(DIK_RETURN)) {
-		//モードをゲームプレイ
+		//モードをタイトル
 		sceneMode_ = 1;
+		// BGMを停止
+		audio_->StopWave(voiceHandleBGM_);
+		//タイトルBGMを再生(trueでループ)
+		voiceHandleBGM_ = audio_->PlayWave(soundDataHandleTitleBGM_, true);
 	}
 }
 //ゲームオーバー描画
@@ -289,6 +307,10 @@ void GameScene::PlayerUpdate() {
 	//プレイヤーライフが0でゲームオーバーへ
 	if (playerLife_ <= 0) {
 		sceneMode_ = 2;
+		// BGMを停止
+		audio_->StopWave(voiceHandleBGM_);
+		//ゲームオーバーBGMを再生(trueでループ)
+		voiceHandleBGM_ = audio_->PlayWave(soundDataHandleGameOver_, true);
 	}
 	//行列更新
 	worldTransformPlayer_.UpdateMatrix();
@@ -359,6 +381,7 @@ void GameScene::EnemyBorn() {
 	//1~10までの間にランダムに発生
 	if (rand() % 10 == 0) {
 		for (int i = 0; i < 10; i++) {
+			//フラグが0なら
 			if (enemyFlag_[i] == 0) {
 				//左右のスピードを初期化(乱数で2/1でどちらかにする)
 				if (rand() % 2 == 0) {
@@ -403,7 +426,7 @@ void GameScene::EnemyMove() {
 			}
 		}
 	}
-}//続き 敵の速度を直す
+}
 
 //衝突判定
 void GameScene::Collision() { 
@@ -423,6 +446,8 @@ void GameScene::CollisionPlayerEnemy() {
 			if (dx < 1 && dz < 1) {
 				playerLife_ -= 1;
 				enemyFlag_[i] = 0;
+				//プレイヤーヒットSEを再生(falseまたは指定なしでループしない)
+				audio_->PlayWave(soundDataHandlePlayerHitSE_, false,2.0f);
 			}
 		}
 	}
@@ -442,6 +467,8 @@ void GameScene::CollisionBeamEnemy() {
 					gameScore_ += 100;
 					enemyFlag_[i] = 0;
 					beamFlag_[b] = 0;
+					//エネミーヒットSEを再生(falseまたは指定なしでループしない)
+					audio_->PlayWave(soundDataHandleEnemyHitSE_, false,2.0f);
 				}
 			}
 		}
