@@ -52,6 +52,9 @@ class GameScene {
 	void GameOverUpdate();
 	void GameOverDraw2DNear();
 
+	//ステージ更新
+	void StageUpdate();
+
 	//プレイヤー更新
 	void PlayerUpdate();
 
@@ -68,6 +71,8 @@ class GameScene {
 	void EnemyBorn();
 	//エネミー移動
 	void EnemyMove();
+	//エネミージャンプ
+	void EnemyJump();
 
 	//衝突判定
 	void Collision();
@@ -102,7 +107,8 @@ class GameScene {
 
 	//敵のスピード
 	float enemySpeed_[10] = {};
-
+	//敵のジャンプ
+	float enemyJumpSpeed_[10] = {};
 
   private: // メンバ変数
 	DirectXCommon* dxCommon_ = nullptr;
@@ -136,7 +142,7 @@ class GameScene {
 	//ステージ
 	uint32_t textureHandleStage_ = 0;
 	Model* modelStage_ = nullptr;
-	WorldTransform worldTransformStage_;
+	WorldTransform worldTransformStage_[20];
 
 	//プレイヤー
 	uint32_t textureHandlePlayer_ = 0;
