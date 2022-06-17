@@ -52,6 +52,12 @@ class GameScene {
 	void GameOverUpdate();
 	void GameOverDraw2DNear();
 
+	//スコア表示
+	void DrawScore();
+
+	//ライフ(残機)
+	void DrawLife();
+
 	//ステージ更新
 	void StageUpdate();
 
@@ -93,14 +99,18 @@ class GameScene {
 
 	//ゲームスコア
 	int gameScore_ = 0;
+	//ゲームタイマー
+	int gameTimer_ = 0;
 
 	//プレイヤーライフ
 	int playerLife_ = 3;
-	
+	//プレイヤータイマー(衝突時点滅)
+	int playerTimer_ = 0;
+
 	//シーン( 0 : ゲームプレイ / 1 : タイトル / 2 : ゲームオーバー)
 	int sceneMode_ = 1;
 	//エンターキー点滅
-	int gameTimer_ = 0;
+	int enterTimer_ = 0;
 
 	//ビーム発射タイマー
 	int beamTimer_ = 0;
@@ -126,6 +136,17 @@ class GameScene {
 
 	//ビュープロジェクション(共通)
 	ViewProjection viewProjection_;
+
+	//スコア数値(スプライト)
+	uint32_t textureHandleNumber_ = 0;
+	Sprite* spriteNumber_[5] = {};
+	//スコアテキスト
+	uint32_t textureHandleScore_ = 0;
+	Sprite* spriteScore_ = nullptr;
+
+	//ライフ(残機)
+	uint32_t textureHandleLife_ = 0;
+	Sprite* spriteLife_[3] = {};
 
 	//タイトル
 	uint32_t textureHandleTitle_ = 0;

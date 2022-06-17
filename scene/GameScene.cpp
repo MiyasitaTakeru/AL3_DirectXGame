@@ -16,6 +16,16 @@ GameScene::~GameScene() {
 	delete spriteTitle_;
 	//ステージ
 	delete modelStage_;
+	//スコア数値(スプライト)
+	for (int n = 0; n < 5; n++) {
+		delete spriteNumber_[n];
+	}
+	//スコアテキスト
+	delete spriteScore_;
+	//ライフ(残機)
+	for (int l = 0; l < 3; l++) {
+		delete spriteLife_[l];
+	}
 	//プレイヤー
 	delete modelPlayer_;
 	//ビーム
@@ -47,6 +57,23 @@ void GameScene::Initialize() {
 		worldTransformStage_[i].translation_ = {0, -1.5f, 2.0f * i - 5};
 		worldTransformStage_[i].scale_ = {4.5f, 1, 1};
 		worldTransformStage_[i].Initialize();
+	}
+
+	//スコア数値(スプライト)
+	textureHandleNumber_ = TextureManager::Load("number.png");
+	for (int n = 0; n < 5; n++) {
+		//表示位置と文字間隔
+		spriteNumber_[n] = Sprite::Create(textureHandleNumber_, {250.0f + n * 26, 0});
+	}
+	//スコアテキスト
+	textureHandleScore_ = TextureManager::Load("score.png");
+	spriteScore_ = Sprite::Create(textureHandleScore_, {100, 0});
+
+	//ライフ(残機)
+	textureHandleLife_ = TextureManager::Load("player.png");
+	for (int l = 0; l < 3; l++) {
+		//表示位置と文字間隔
+		spriteLife_[l] = Sprite::Create(textureHandleLife_, {1000.0f + l * 50, 10});
 	}
 
 	//タイトル
@@ -118,7 +145,9 @@ void GameScene::GamePlayDraw3D() {
 		modelStage_->Draw(worldTransformStage_[i], viewProjection_, textureHandleStage_);
 	}
 	//プレイヤー
-	modelPlayer_->Draw(worldTransformPlayer_, viewProjection_, textureHandlePlayer_);
+	if (playerTimer_ % 4 < 2) {
+		modelPlayer_->Draw(worldTransformPlayer_, viewProjection_, textureHandlePlayer_);
+	}
 	//ビーム(フラグが1の時)
 	for (int b = 0; b < 10; b++) {
 		if (beamFlag_[b] == 1) {
@@ -140,13 +169,15 @@ void GameScene::GamePlayDraw2DBack() {
 //ゲームプレイ前景描画
 void GameScene::GamePlayDraw2DNear() {
 	//スコア
-	char score[100];
+	DrawScore();
+	/*char score[100];
 	sprintf_s(score, "SCORE : %d", gameScore_);
-	debugText_->Print(score, 200, 10, 2);
+	debugText_->Print(score, 200, 10, 2);*/
 	//ライフ
-	char life[100];
+	DrawLife();
+	/*char life[100];
 	sprintf_s(life, "LIFE : %d", playerLife_);
-	debugText_->Print(life, 1000, 10, 2);
+	debugText_->Print(life, 1000, 10, 2);*/
 }
 
 //更新
@@ -157,11 +188,11 @@ void GameScene::Update() {
 		    break;
 		case 1:
 		    TitleUpdate();
-		    gameTimer_++;
+		    enterTimer_++;
 		    break;
 	    case 2:
 		    GameOverUpdate();
-		    gameTimer_++;
+		    enterTimer_++;
 		    break;
 	}
 }
@@ -179,6 +210,9 @@ void GameScene::Draw() {
 	/// </summary>
 	switch (sceneMode_) {
 	case 0:
+		GamePlayDraw2DBack();
+		break;
+	case 2:
 		GamePlayDraw2DBack();
 		break;
 	}
@@ -200,6 +234,9 @@ void GameScene::Draw() {
 	/// </summary>
 	switch (sceneMode_) {
 	case 0:
+		GamePlayDraw3D();
+		break;
+	case 2:
 		GamePlayDraw3D();
 		break;
 	}
@@ -241,9 +278,11 @@ void GameScene::Draw() {
 //ゲーム初期化
 void GameScene::GamePlayStart() { 
 	sceneMode_ = 0;
-	gameTimer_ = 0;
+	enterTimer_ = 0;
 	gameScore_ = 0;
+	gameTimer_ = 0;
 	playerLife_ = 3;
+	playerTimer_ = 0;
 	for (int b = 0; b < 10; b++) {
 		beamFlag_[b] = 0;
 	}
@@ -274,7 +313,7 @@ void GameScene::TitleUpdate() {
 void GameScene::TitleDraw2DNear() { 
 	spriteTitle_->Draw(); 
 	//エンター点滅
-	if (gameTimer_ % 60 <= 20) {
+	if (enterTimer_ % 60 <= 20) {
 		spriteEnter_->Draw();
 	}
 }
@@ -294,8 +333,41 @@ void GameScene::GameOverUpdate() {
 void GameScene::GameOverDraw2DNear() {
 	spriteGameOver_->Draw();
 	//エンター点滅
-	if (gameTimer_ % 60 <= 20) {
+	if (enterTimer_ % 60 <= 20) {
 		spriteEnter_->Draw();
+	}
+}
+
+//スコア表示
+void GameScene::DrawScore() {
+	//テキスト表示
+	spriteScore_->Draw();
+
+	//各桁の値を取り出す
+	char eachNumber[5] = {};
+	int number = gameScore_;
+
+	int digit = 10000;
+	for (int n = 0; n < 5; n++) {
+		eachNumber[n] = number / digit;
+		number = number % digit;
+		digit = digit / 10;
+	}
+	//各桁の数値を描画
+	for (int n = 0; n < 5; n++) {
+		spriteNumber_[n]->SetSize({32,64});
+		spriteNumber_[n]->SetTextureRect({32.0f * eachNumber[n], 0}, {32, 64});
+		spriteNumber_[n]->Draw();
+	}
+}
+
+//ライフ(残機)
+void GameScene::DrawLife() {
+	//ライフ分だけ表示
+	for (int l = 0; l < playerLife_; l++) {
+		//サイズは40
+		spriteLife_[l]->SetSize({40, 40});
+		spriteLife_[l]->Draw();
 	}
 }
 
@@ -331,6 +403,10 @@ void GameScene::PlayerUpdate() {
 		audio_->StopWave(voiceHandleBGM_);
 		//ゲームオーバーBGMを再生(trueでループ)
 		voiceHandleBGM_ = audio_->PlayWave(soundDataHandleGameOver_, true);
+	}
+	//衝突時プレイヤー点滅
+	if (playerTimer_ >= 0) {
+		playerTimer_--;
 	}
 	//行列更新
 	worldTransformPlayer_.UpdateMatrix();
@@ -418,6 +494,8 @@ void GameScene::EnemyBorn() {
 				float x2 = (float)x / 10 - 4;
 				//乱数を代入
 				worldTransformEnemy_[e].translation_.x = x2;
+				//エネミーのy座標を0
+				worldTransformEnemy_[e].translation_.y = 0;
 				//フラグを1
 				enemyFlag_[e] = 1;
 				break;
@@ -431,7 +509,7 @@ void GameScene::EnemyMove() {
 		if (enemyFlag_[e] == 1) {
 			//回転
 			worldTransformEnemy_[e].rotation_.x -= 0.1f;
-			//奥に移動(z軸)
+			//手前に移動(z軸)
 			worldTransformEnemy_[e].translation_.z -= 0.3f;
 			//横に移動(x軸)
 			worldTransformEnemy_[e].translation_.x += enemySpeed_[e];
@@ -465,8 +543,6 @@ void GameScene::EnemyJump() {
 				if (worldTransformEnemy_[e].translation_.y < -3) {
 					//存在しない
 					enemyFlag_[e] = 0;
-				    //エネミーのy座標を0
-				    worldTransformEnemy_[e].translation_.y = 0;
 				}
 			}
 		}
@@ -490,6 +566,8 @@ void GameScene::CollisionPlayerEnemy() {
 			if (dx < 1 && dz < 1) {
 				playerLife_ -= 1;
 				enemyFlag_[e] = 0;
+				//プレイヤー点滅タイマー
+				playerTimer_ = 60;
 				//プレイヤーヒットSEを再生(falseまたは指定なしでループしない)
 				audio_->PlayWave(soundDataHandlePlayerHitSE_, false,2.0f);
 			}
