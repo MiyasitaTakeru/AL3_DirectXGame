@@ -107,6 +107,9 @@ class GameScene {
 	//プレイヤータイマー(衝突時点滅)
 	int playerTimer_ = 0;
 
+	//プレイヤー角度
+	float playerDir = 3.14 / 2;
+
 	//シーン( 0 : ゲームプレイ / 1 : タイトル / 2 : ゲームオーバー)
 	int sceneMode_ = 1;
 	//エンターキー点滅
@@ -180,9 +183,9 @@ class GameScene {
 	//エネミー
 	uint32_t textureHandleEnemy_ = 0;
 	Model* modelEnemy_ = nullptr;
-	WorldTransform worldTransformEnemy_[10];
+	WorldTransform worldTransformEnemy_[20];
 	//エネミー存在フラグ
-	uint32_t enemyFlag_[10] = {};
+	uint32_t enemyFlag_[20] = {};
 
 	//サウンド
 	uint32_t soundDataHandleTitleBGM_ = 0;

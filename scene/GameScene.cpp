@@ -42,7 +42,7 @@ void GameScene::Initialize() {
 	debugText_ = DebugText::GetInstance();
 	
 	//BG(2Dスプライト)
-	textureHandleBG_ = TextureManager::Load("bg.jpg");
+	textureHandleBG_ = TextureManager::Load("bg.png");
 	spriteBG_ = Sprite::Create(textureHandleBG_, {0, 0});
 	//ビュープロジェクションの初期化
 	viewProjection_.eye = {0, 1, -6};
@@ -51,11 +51,11 @@ void GameScene::Initialize() {
 
 	//ステージの位置を下げる
 	textureHandleStage_ = TextureManager::Load("stage2.jpg");
-	modelStage_ = Model::Create();
+	modelStage_ = Model::CreateFromOBJ("BG", true);
 	//ステージ
 	for (int i = 0; i < 20; i++) {
-		worldTransformStage_[i].translation_ = {0, -1.5f, 2.0f * i - 5};
-		worldTransformStage_[i].scale_ = {4.5f, 1, 1};
+		worldTransformStage_[i].translation_ = {0, -1.5f, 4.0f * i - 5};
+		worldTransformStage_[i].scale_ = {4, 4, 2};
 		worldTransformStage_[i].Initialize();
 	}
 
@@ -79,6 +79,7 @@ void GameScene::Initialize() {
 	//タイトル
 	textureHandleTitle_ = TextureManager::Load("title.png");
 	spriteTitle_ = Sprite::Create(textureHandleTitle_, {0, 0});
+
 	//ゲームオーバー
 	textureHandleGameOver_ = TextureManager::Load("gameover.png");
 	spriteGameOver_ = Sprite::Create(textureHandleGameOver_, {0, 0});
@@ -88,10 +89,11 @@ void GameScene::Initialize() {
 	spriteEnter_ = Sprite::Create(textureHandleEnter_, {400, 500});
 
 	//プレイヤー
-	textureHandlePlayer_ = TextureManager::Load("Player.png");
-	modelPlayer_ = Model::Create();
+	textureHandlePlayer_ = TextureManager::Load("player.png");
+	modelPlayer_ = Model::CreateFromOBJ("Player", true);
 	worldTransformPlayer_.scale_ = {0.5f, 0.5f, 0.5f};
 	worldTransformPlayer_.Initialize();
+	
 	
 	//ビーム
 	textureHandleBeam_ = TextureManager::Load("beam.png");
@@ -100,10 +102,11 @@ void GameScene::Initialize() {
 		worldTransformBeam_[b].scale_ = {0.3f, 0.3f, 0.3f};
 		worldTransformBeam_[b].Initialize();
 	}
+
 	//エネミー
 	textureHandleEnemy_ = TextureManager::Load("enemy.png");
 	modelEnemy_ = Model::Create();
-	for (int e = 0; e < 10; e++) {
+	for (int e = 0; e < 20; e++) {
 		worldTransformEnemy_[e].scale_ = {0.5f, 0.5f, 0.5f};
 		//発生のための乱数の種(シード)
 		srand(time(nullptr));
@@ -125,7 +128,7 @@ void GameScene::Initialize() {
 void GameScene::GamePlayUpdate() {
 	StageUpdate();
 	PlayerUpdate();
-	EnemyUpdate();
+	//EnemyUpdate();
 	BeamUpdate();
 	Collision();
 	CollisionPlayerEnemy();
@@ -142,11 +145,11 @@ void GameScene::GamePlayUpdate() {
 void GameScene::GamePlayDraw3D() {
 	//ステージ
 	for (int i = 0; i < 20; i++) {
-		modelStage_->Draw(worldTransformStage_[i], viewProjection_, textureHandleStage_);
+		modelStage_->Draw(worldTransformStage_[i], viewProjection_);
 	}
 	//プレイヤー
 	if (playerTimer_ % 4 < 2) {
-		modelPlayer_->Draw(worldTransformPlayer_, viewProjection_, textureHandlePlayer_);
+		modelPlayer_->Draw(worldTransformPlayer_, viewProjection_);
 	}
 	//ビーム(フラグが1の時)
 	for (int b = 0; b < 10; b++) {
@@ -155,11 +158,12 @@ void GameScene::GamePlayDraw3D() {
 		}
 	}
 	//エネミー(フラグが1の時)
-	for (int e = 0; e < 10; e++) {
+	for (int e = 0; e < 20; e++) {
 		if (enemyFlag_[e] != 0) {
 			modelEnemy_->Draw(worldTransformEnemy_[e], viewProjection_, textureHandleEnemy_);
 		}
 	}
+
 }
 //ゲームプレイ背景描画
 void GameScene::GamePlayDraw2DBack() {
@@ -388,26 +392,47 @@ void GameScene::StageUpdate() {
 
 //プレイヤー更新
 void GameScene::PlayerUpdate() {
-	//x座標が3.5f以下の場合右へ移動(移動制限)
-	if (input_->PushKey(DIK_RIGHT) && worldTransformPlayer_.translation_.x <= 3.5f) {
-		worldTransformPlayer_.translation_.x += 0.15f;
+	////x座標が3.5f以下の場合右へ移動(移動制限)
+	//if (input_->PushKey(DIK_RIGHT) && worldTransformPlayer_.translation_.x <= 3.5f) {
+	//	worldTransformPlayer_.translation_.x += 0.15f;
+	//}
+	////x座標が-3.5f以上の場合左へ移動(移動制限)
+	//if (input_->PushKey(DIK_LEFT) && worldTransformPlayer_.translation_.x >= -3.5f) {
+	//	worldTransformPlayer_.translation_.x -= 0.15f;
+	//}
+	////プレイヤーライフが0でゲームオーバーへ
+	//if (playerLife_ <= 0) {
+	//	sceneMode_ = 2;
+	//	// BGMを停止
+	//	audio_->StopWave(voiceHandleBGM_);
+	//	//ゲームオーバーBGMを再生(trueでループ)
+	//	voiceHandleBGM_ = audio_->PlayWave(soundDataHandleGameOver_, true);
+	//}
+	////衝突時プレイヤー点滅
+	//if (playerTimer_ >= 0) {
+	//	playerTimer_--;
+	//}
+	//右回転
+	if (input_->PushKey(DIK_RIGHT)) {
+		playerDir -= 0.05f;
 	}
-	//x座標が-3.5f以上の場合左へ移動(移動制限)
-	if (input_->PushKey(DIK_LEFT) && worldTransformPlayer_.translation_.x >= -3.5f) {
-		worldTransformPlayer_.translation_.x -= 0.15f;
+	//左回転
+	if (input_->PushKey(DIK_LEFT)) {
+		playerDir += 0.05f;
 	}
-	//プレイヤーライフが0でゲームオーバーへ
-	if (playerLife_ <= 0) {
-		sceneMode_ = 2;
-		// BGMを停止
-		audio_->StopWave(voiceHandleBGM_);
-		//ゲームオーバーBGMを再生(trueでループ)
-		voiceHandleBGM_ = audio_->PlayWave(soundDataHandleGameOver_, true);
+	//上
+	if (input_->PushKey(DIK_UP)) {
+		worldTransformPlayer_.translation_.x += cos(playerDir) / 10;
+		worldTransformPlayer_.translation_.z += sin(playerDir) / 10;
 	}
-	//衝突時プレイヤー点滅
-	if (playerTimer_ >= 0) {
-		playerTimer_--;
+	//下
+	if (input_->PushKey(DIK_DOWN)) {
+		worldTransformPlayer_.translation_.x -= cos(playerDir) / 10;
+		worldTransformPlayer_.translation_.z -= sin(playerDir) / 10;
 	}
+	//モデルの回転
+	worldTransformPlayer_.rotation_.y = -playerDir + 3.14 / 2;
+	
 	//行列更新
 	worldTransformPlayer_.UpdateMatrix();
 }
@@ -478,7 +503,7 @@ void GameScene::EnemyUpdate() {
 void GameScene::EnemyBorn() {
 	//1~10までの間にランダムに発生
 	if (rand() % 10 == 0) {
-		for (int e = 0; e < 10; e++) {
+		for (int e = 0; e < 20; e++) {
 			//フラグが0なら
 			if (enemyFlag_[e] == 0) {
 				//左右のスピードを初期化(乱数で2/1でどちらかにする)
@@ -505,7 +530,7 @@ void GameScene::EnemyBorn() {
 }
 //エネミー移動
 void GameScene::EnemyMove() { 
-	for (int e = 0; e < 10; e++) {
+	for (int e = 0; e < 20; e++) {
 		if (enemyFlag_[e] == 1) {
 			//回転
 			worldTransformEnemy_[e].rotation_.x -= 0.1f;
@@ -530,7 +555,7 @@ void GameScene::EnemyMove() {
 //エネミージャンプ
 void GameScene::EnemyJump() { 
 	//敵でループ
-		for (int e = 0; e < 10; e++) {
+		for (int e = 0; e < 20; e++) {
 			//消滅演出なら
 			if (enemyFlag_[e] == 2) {
 				//移動(y座標に速度を加える)
